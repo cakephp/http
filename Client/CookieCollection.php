@@ -28,6 +28,16 @@ class CookieCollection extends BaseCollection
 {
 
     /**
+     * {@inheritDoc}
+     */
+    public function __construct(array $cookies = [])
+    {
+        parent::__construct($cookies);
+
+        deprecationWarning('Use Cake\Http\Cookie\CookieCollection instead.');
+    }
+
+    /**
      * Store the cookies from a response.
      *
      * Store the cookies that haven't expired. If a cookie has been expired
@@ -36,6 +46,7 @@ class CookieCollection extends BaseCollection
      * @param Response $response The response to read cookies from
      * @param string $url The request URL used for default host/path values.
      * @return void
+     * @throws \Exception
      */
     public function store(Response $response, $url)
     {
@@ -60,6 +71,7 @@ class CookieCollection extends BaseCollection
      *
      * @param string $url The URL to find cookies for.
      * @return array
+     * @throws \Exception
      */
     public function get($url)
     {
