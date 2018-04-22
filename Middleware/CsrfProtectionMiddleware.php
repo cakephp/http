@@ -14,10 +14,10 @@
  */
 namespace Cake\Http\Middleware;
 
+use Cake\Http\Exception\InvalidCsrfTokenException;
 use Cake\Http\Response;
 use Cake\Http\ServerRequest;
 use Cake\I18n\Time;
-use Cake\Network\Exception\InvalidCsrfTokenException;
 use Cake\Utility\Hash;
 use Cake\Utility\Security;
 
@@ -177,7 +177,7 @@ class CsrfProtectionMiddleware
      *
      * @param \Cake\Http\ServerRequest $request The request to validate against.
      * @return void
-     * @throws \Cake\Network\Exception\InvalidCsrfTokenException When the CSRF token is invalid or missing.
+     * @throws \Cake\Http\Exception\InvalidCsrfTokenException When the CSRF token is invalid or missing.
      */
     protected function _validateToken(ServerRequest $request)
     {
@@ -190,7 +190,7 @@ class CsrfProtectionMiddleware
             throw new InvalidCsrfTokenException(__d('cake', 'Missing CSRF token cookie'));
         }
 
-        if ($post !== $cookie && $header !== $cookie) {
+        if (!Security::constantEquals($post, $cookie) && !Security::constantEquals($header, $cookie)) {
             throw new InvalidCsrfTokenException(__d('cake', 'CSRF token mismatch.'));
         }
     }
