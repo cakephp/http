@@ -16,7 +16,7 @@ namespace Cake\Http\Client\Adapter;
 use Cake\Core\Exception\Exception;
 use Cake\Http\Client\Request;
 use Cake\Http\Client\Response;
-use Cake\Network\Exception\HttpException;
+use Cake\Http\Exception\HttpException;
 
 /**
  * Implements sending Cake\Http\Client\Request
@@ -184,8 +184,8 @@ class Stream
      */
     protected function _buildOptions(Request $request, $options)
     {
-        $this->_contextOptions['method'] = $request->method();
-        $this->_contextOptions['protocol_version'] = $request->version();
+        $this->_contextOptions['method'] = $request->getMethod();
+        $this->_contextOptions['protocol_version'] = $request->getProtocolVersion();
         $this->_contextOptions['ignore_errors'] = true;
 
         if (isset($options['timeout'])) {
@@ -239,7 +239,7 @@ class Stream
      *
      * @param \Cake\Http\Client\Request $request The request object.
      * @return array Array of populated Response objects
-     * @throws \Cake\Network\Exception\HttpException
+     * @throws \Cake\Http\Exception\HttpException
      */
     protected function _send(Request $request)
     {
@@ -306,8 +306,11 @@ class Stream
         set_error_handler(function ($code, $message) {
             $this->_connectionErrors[] = $message;
         });
-        $this->_stream = fopen($url, 'rb', false, $this->_context);
-        restore_error_handler();
+        try {
+            $this->_stream = fopen($url, 'rb', false, $this->_context);
+        } finally {
+            restore_error_handler();
+        }
 
         if (!$this->_stream || !empty($this->_connectionErrors)) {
             throw new Exception(implode("\n", $this->_connectionErrors));
