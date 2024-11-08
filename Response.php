@@ -179,6 +179,8 @@ class Response implements ResponseInterface, Stringable
         'ips' => 'application/x-ipscript',
         'ipx' => 'application/x-ipix',
         'js' => 'application/javascript',
+        'cjs' => 'application/javascript',
+        'mjs' => 'application/javascript',
         'jsonapi' => 'application/vnd.api+json',
         'latex' => 'application/x-latex',
         'jsonld' => 'application/ld+json',
