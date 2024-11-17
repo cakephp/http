@@ -82,7 +82,7 @@ class BodyParserMiddleware implements MiddlewareInterface
     /**
      * Set the HTTP methods to parse request bodies on.
      *
-     * @param list<string> $methods The methods to parse data on.
+     * @param array<string> $methods The methods to parse data on.
      * @return $this
      */
     public function setMethods(array $methods)
@@ -117,7 +117,7 @@ class BodyParserMiddleware implements MiddlewareInterface
      * });
      * ```
      *
-     * @param list<string> $types An array of content-type header values to match. eg. application/json
+     * @param array<string> $types An array of content-type header values to match. eg. application/json
      * @param \Closure $parser The parser function. Must return an array of data to be inserted
      *   into the request.
      * @return $this
