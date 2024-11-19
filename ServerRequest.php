@@ -107,7 +107,7 @@ class ServerRequest implements ServerRequestInterface
     /**
      * Trusted proxies list
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected array $trustedProxies = [];
 
@@ -183,7 +183,7 @@ class ServerRequest implements ServerRequestInterface
     /**
      * A list of properties that emulated by the PSR7 attribute methods.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected array $emulatedAttributes = ['session', 'flash', 'webroot', 'base', 'params', 'here'];
 
@@ -419,7 +419,7 @@ class ServerRequest implements ServerRequestInterface
     /**
      * Get trusted proxies
      *
-     * @return list<string>
+     * @return array<string>
      */
     public function getTrustedProxies(): array
     {
@@ -1080,7 +1080,7 @@ class ServerRequest implements ServerRequestInterface
      *
      * @param int $tldLength Number of segments your tld contains. For example: `example.com` contains 1 tld.
      *   While `example.co.uk` contains 2.
-     * @return list<string> An array of subdomains.
+     * @return array<string> An array of subdomains.
      */
     public function subdomains(int $tldLength = 1): array
     {
@@ -1114,7 +1114,7 @@ class ServerRequest implements ServerRequestInterface
      * by the client.
      *
      * @param string|null $type The content type to check for. Leave null to get all types a client accepts.
-     * @return list<string>|bool Either an array of all the types the client accepts or a boolean if they accept the
+     * @return array<string>|bool Either an array of all the types the client accepts or a boolean if they accept the
      *   provided type.
      */
     public function accepts(?string $type = null): array|bool
