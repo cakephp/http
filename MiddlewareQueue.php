@@ -58,7 +58,7 @@ class MiddlewareQueue implements Countable, SeekableIterator
      * Constructor
      *
      * @param array $middleware The list of middleware to append.
-     * @param \Cake\Core\ContainerInterface $container Container instance.
+     * @param \Cake\Core\ContainerInterface|null $container Container instance.
      */
     public function __construct(array $middleware = [], ?ContainerInterface $container = null)
     {
