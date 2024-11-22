@@ -185,7 +185,7 @@ class Cookie implements CookieInterface
      * Valid option keys are:
      *
      * - `expires`: Can be a UNIX timestamp or `strtotime()` compatible string or `DateTimeInterface` instance or `null`.
-     * - `path`: A path string. Defauts to `'/'`.
+     * - `path`: A path string. Defaults to `'/'`.
      * - `domain`: Domain name string. Defaults to `''`.
      * - `httponly`: Boolean. Defaults to `false`.
      * - `secure`: Boolean. Defaults to `false`.
