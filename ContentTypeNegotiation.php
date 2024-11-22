@@ -6,7 +6,7 @@ namespace Cake\Http;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * Negotiates the prefered content type from what the application
+ * Negotiates the preferred content type from what the application
  * provides and what the request has in its Accept header.
  */
 class ContentTypeNegotiation
