@@ -46,7 +46,7 @@ class HttpsEnforcerMiddleware implements MiddlewareInterface
      *
      *        - 'maxAge' - `max-age` directive value in seconds.
      *        - 'includeSubDomains' - Whether to include `includeSubDomains` directive. Defaults to `false`.
-     *        - 'preload' - Whether to include 'preload' directive. Defauls to `false`.
+     *        - 'preload' - Whether to include 'preload' directive. Defaults to `false`.
      *
      * @var array<string, mixed>
      */
