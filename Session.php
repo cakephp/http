@@ -186,7 +186,7 @@ class Session
             throw new CakeException(sprintf(
                 'Invalid session defaults name `%s`. Valid values are: %s.',
                 $name,
-                implode(', ', array_keys($defaults))
+                implode(', ', array_keys($defaults)),
             ));
         }
 
@@ -272,7 +272,7 @@ class Session
      */
     public function engine(
         SessionHandlerInterface|string|null $class = null,
-        array $options = []
+        array $options = [],
     ): ?SessionHandlerInterface {
         if ($class === null) {
             return $this->_engine;
