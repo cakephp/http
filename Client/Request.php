@@ -15,6 +15,7 @@ declare(strict_types=1);
  */
 namespace Cake\Http\Client;
 
+use Cake\Utility\Xml;
 use Laminas\Diactoros\RequestTrait;
 use Laminas\Diactoros\Stream;
 use Psr\Http\Message\RequestInterface;
@@ -90,12 +91,21 @@ class Request extends Message implements RequestInterface
     protected function setContent(array|string $content)
     {
         if (is_array($content)) {
-            $formData = new FormData();
-            $formData->addMany($content);
-            /** @var array<non-empty-string, non-empty-string> $headers */
-            $headers = ['Content-Type' => $formData->contentType()];
-            $this->addHeaders($headers);
-            $content = (string)$formData;
+            $contentType = $this->getHeaderLine('content-type');
+
+            if (str_contains($contentType, 'application/json')) {
+                $content = json_encode($content, JSON_THROW_ON_ERROR);
+            } elseif (str_contains($contentType, 'application/xml')) {
+                /** @phpstan-ignore-next-line */
+                $content = (string)Xml::fromArray($content);
+            } else {
+                $formData = new FormData();
+                $formData->addMany($content);
+                /** @phpstan-var array<non-empty-string, non-empty-string> $headers */
+                $headers = ['Content-Type' => $formData->contentType()];
+                $this->addHeaders($headers);
+                $content = (string)$formData;
+            }
         }
 
         $stream = new Stream('php://memory', 'rw');
