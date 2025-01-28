@@ -26,9 +26,9 @@
     },
     "require": {
         "php": ">=8.4",
-        "cakephp/core": "^6.0",
-        "cakephp/event": "^6.0",
-        "cakephp/utility": "^6.0",
+        "cakephp/core": "6.0.*@dev",
+        "cakephp/event": "6.0.*@dev",
+        "cakephp/utility": "6.0.*@dev",
         "composer/ca-bundle": "^1.5",
         "psr/http-client": "^1.0.2",
         "psr/http-factory": "^1.1",
@@ -39,10 +39,10 @@
         "laminas/laminas-httphandlerrunner": "^2.6"
     },
     "require-dev": {
-        "cakephp/cache": "^6.0",
-        "cakephp/console": "^6.0",
-        "cakephp/orm": "^6.0",
-        "cakephp/i18n": "^6.0",
+        "cakephp/cache": "6.0.*@dev",
+        "cakephp/console": "6.0.*@dev",
+        "cakephp/orm": "6.0.*@dev",
+        "cakephp/i18n": "6.0.*@dev",
         "paragonie/csp-builder": "^3.0"
     },
     "autoload": {
@@ -61,6 +61,10 @@
         "cakephp/orm": "To use database session storage",
         "paragonie/csp-builder": "To use CspMiddleware"
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-5.next": "6.0.x-dev"
+        }
+    }
 }
