@@ -650,14 +650,13 @@ class Session
 
         $this->start();
         $params = session_get_cookie_params();
+        unset($params['lifetime']);
+        $params['expires'] = time() - 42000;
         setcookie(
             (string)session_name(),
             '',
-            time() - 42000,
-            $params['path'],
-            $params['domain'],
-            $params['secure'],
-            $params['httponly'],
+            /** @phpstan-ignore-next-line */
+            $params,
         );
 
         if (session_id() !== '') {

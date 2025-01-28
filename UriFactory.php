@@ -77,16 +77,26 @@ class UriFactory implements UriFactoryInterface
         if ($base !== '' && str_starts_with($path, $base)) {
             $path = substr($path, strlen($base));
         }
+
+        // App.baseUrl is meant to be set only when URL rewriting is not used.
+        if (!Configure::read('App.baseUrl')) {
+            if ($path === '' || $path === '//') {
+                $path = '/';
+            }
+
+            return $uri->withPath($path);
+        }
+
         if ($path === '/index.php' && $uri->getQuery()) {
             $path = $uri->getQuery();
         }
-        if (!$path || $path === '/' || $path === '//' || $path === '/index.php') {
+        if ($path === '' || $path === '//' || $path === '/index.php') {
             $path = '/';
         }
 
         // Check for $webroot/index.php at the start and end of the path.
         $search = '';
-        if ($path[0] === '/') {
+        if (str_starts_with($path, '/')) {
             $search .= '/';
         }
         $search .= (Configure::read('App.webroot') ?: 'webroot') . '/index.php';
