@@ -655,7 +655,6 @@ class Session
         setcookie(
             (string)session_name(),
             '',
-            /** @phpstan-ignore-next-line */
             $params,
         );
 
