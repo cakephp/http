@@ -88,7 +88,7 @@ class Request extends Message implements RequestInterface
      * @param array|string $content The body for the request.
      * @return $this
      */
-    protected function setContent(array|string $content)
+    protected function setContent(array|string $content): static
     {
         if (is_array($content)) {
             $contentType = $this->getHeaderLine('content-type');

@@ -62,7 +62,7 @@ class ClientEvent extends Event
      * @param mixed $value The value to set.
      * @return $this
      */
-    public function setResult(mixed $value = null)
+    public function setResult(mixed $value = null): static
     {
         if ($value !== null && !$value instanceof Response) {
             throw new InvalidArgumentException(
@@ -79,7 +79,7 @@ class ClientEvent extends Event
      * @param \Psr\Http\Message\RequestInterface $request
      * @return $this
      */
-    public function setRequest(RequestInterface $request)
+    public function setRequest(RequestInterface $request): static
     {
         $this->_data['request'] = $request;
 
@@ -101,7 +101,7 @@ class ClientEvent extends Event
      *
      * @return $this
      */
-    public function setAdapterOptions(array $options = [])
+    public function setAdapterOptions(array $options = []): static
     {
         $this->_data['adapterOptions'] = $options;
 
