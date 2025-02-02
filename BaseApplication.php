@@ -136,7 +136,7 @@ abstract class BaseApplication implements
     /**
      * @inheritDoc
      */
-    public function addPlugin($name, array $config = [])
+    public function addPlugin($name, array $config = []): static
     {
         if (is_string($name)) {
             $plugin = $this->plugins->create($name, $config);
@@ -157,7 +157,7 @@ abstract class BaseApplication implements
      * @param array<string, mixed> $config The configuration data for the plugin if using a string for $name
      * @return $this
      */
-    public function addOptionalPlugin(PluginInterface|string $name, array $config = [])
+    public function addOptionalPlugin(PluginInterface|string $name, array $config = []): static
     {
         try {
             $this->addPlugin($name, $config);
