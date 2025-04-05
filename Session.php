@@ -136,7 +136,7 @@ class Session
     }
 
     /**
-     * Get one of the prebaked default session configurations.
+     * Get one of the pre-baked default session configurations.
      *
      * @param string $name Config name.
      * @return array
