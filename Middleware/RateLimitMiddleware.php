@@ -22,6 +22,7 @@ use Cake\Http\RateLimit\FixedWindowRateLimiter;
 use Cake\Http\RateLimit\RateLimiterInterface;
 use Cake\Http\RateLimit\SlidingWindowRateLimiter;
 use Cake\Http\RateLimit\TokenBucketRateLimiter;
+use Closure;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -37,6 +38,13 @@ class RateLimitMiddleware implements MiddlewareInterface
 {
     /**
      * Default configuration
+     *
+     * - `skipCheck`: Closure|null to determine if rate limiting should be skipped
+     * - `costCallback`: Closure|null to calculate request cost
+     * - `identifierCallback`: Closure|null to generate custom identifier
+     * - `limitCallback`: Closure|null to determine dynamic limits
+     * - `keyGenerator`: Closure|null to generate cache keys
+     * - `limiterResolver`: Closure|null to resolve named limiters
      *
      * @var array<string, mixed>
      */
@@ -127,8 +135,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function resolveLimiterConfig(ServerRequestInterface $request): array
     {
-        if ($this->config['limiterResolver'] !== null) {
-            $name = call_user_func($this->config['limiterResolver'], $request);
+        $resolver = $this->config['limiterResolver'];
+        if ($resolver instanceof Closure) {
+            $name = $resolver($request);
             if ($name && isset($this->config['limiters'][$name])) {
                 return $this->config['limiters'][$name];
             }
@@ -150,11 +159,12 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function shouldSkip(ServerRequestInterface $request): bool
     {
-        if ($this->config['skipCheck'] === null) {
-            return false;
+        $skipCheck = $this->config['skipCheck'];
+        if ($skipCheck instanceof Closure) {
+            return (bool)$skipCheck($request);
         }
 
-        return (bool)call_user_func($this->config['skipCheck'], $request);
+        return false;
     }
 
     /**
@@ -165,8 +175,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getIdentifier(ServerRequestInterface $request): string
     {
-        if ($this->config['identifierCallback'] !== null) {
-            return (string)call_user_func($this->config['identifierCallback'], $request);
+        $callback = $this->config['identifierCallback'];
+        if ($callback instanceof Closure) {
+            return (string)$callback($request);
         }
 
         $identifier = $this->config['identifier'];
@@ -282,8 +293,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function generateKey(string $identifier, ServerRequestInterface $request): string
     {
-        if ($this->config['keyGenerator'] !== null) {
-            return (string)call_user_func($this->config['keyGenerator'], $identifier, $request);
+        $generator = $this->config['keyGenerator'];
+        if ($generator instanceof Closure) {
+            return (string)$generator($identifier, $request);
         }
 
         return 'rate_limit_' . hash('xxh3', $identifier);
@@ -326,8 +338,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getLimit(ServerRequestInterface $request, string $identifier): int
     {
-        if ($this->config['limitCallback'] !== null) {
-            return (int)call_user_func($this->config['limitCallback'], $request, $identifier);
+        $callback = $this->config['limitCallback'];
+        if ($callback instanceof Closure) {
+            return (int)$callback($request, $identifier);
         }
 
         return (int)$this->config['limit'];
@@ -341,8 +354,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getCost(ServerRequestInterface $request): int
     {
-        if ($this->config['costCallback'] !== null) {
-            return (int)call_user_func($this->config['costCallback'], $request);
+        $callback = $this->config['costCallback'];
+        if ($callback instanceof Closure) {
+            return (int)$callback($request);
         }
 
         return 1;
