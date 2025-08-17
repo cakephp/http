@@ -52,6 +52,12 @@ class RateLimitMiddleware implements MiddlewareInterface
         'costCallback' => null,
         'identifierCallback' => null,
         'limitCallback' => null,
+        'ipHeader' => 'x-forwarded-for',
+        'includeRetryAfter' => true,
+        'keyGenerator' => null,
+        'tokenHeaders' => ['Authorization', 'X-API-Key'],
+        'limiters' => [],
+        'limiterResolver' => null,
     ];
 
     /**
@@ -84,16 +90,24 @@ class RateLimitMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
+        $limiterConfig = $this->resolveLimiterConfig($request);
         $identifier = $this->getIdentifier($request);
-        $limit = $this->getLimit($request, $identifier);
-        $window = $this->config['window'];
+        $limit = $limiterConfig['limit'] ?? $this->getLimit($request, $identifier);
+        $window = $limiterConfig['window'] ?? $this->config['window'];
         $cost = $this->getCost($request);
+        $key = $this->generateKey($identifier, $request);
 
-        $rateLimiter = $this->getRateLimiter();
-        $result = $rateLimiter->attempt($identifier, $limit, $window, $cost);
+        $rateLimiter = $this->getRateLimiter($limiterConfig['strategy'] ?? null);
+        $result = $rateLimiter->attempt($key, $limit, $window, $cost);
 
         if (!$result['allowed']) {
-            throw new TooManyRequestsException($this->config['message']);
+            $message = $limiterConfig['message'] ?? $this->config['message'];
+            $exception = new TooManyRequestsException($message);
+            if ($this->config['includeRetryAfter'] && isset($result['reset'])) {
+                $retryAfter = max(1, $result['reset'] - time());
+                $exception->setHeader('Retry-After', (string)$retryAfter);
+            }
+            throw $exception;
         }
 
         $response = $handler->handle($request);
@@ -103,6 +117,29 @@ class RateLimitMiddleware implements MiddlewareInterface
         }
 
         return $response;
+    }
+
+    /**
+     * Resolve limiter configuration for the current request
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request
+     * @return array<string, mixed>
+     */
+    protected function resolveLimiterConfig(ServerRequestInterface $request): array
+    {
+        if ($this->config['limiterResolver'] !== null) {
+            $name = call_user_func($this->config['limiterResolver'], $request);
+            if ($name && isset($this->config['limiters'][$name])) {
+                return $this->config['limiters'][$name];
+            }
+        }
+
+        $params = $request->getAttribute('params', []);
+        if (isset($params['_rateLimiter']) && isset($this->config['limiters'][$params['_rateLimiter']])) {
+            return $this->config['limiters'][$params['_rateLimiter']];
+        }
+
+        return [];
     }
 
     /**
@@ -132,11 +169,34 @@ class RateLimitMiddleware implements MiddlewareInterface
             return (string)call_user_func($this->config['identifierCallback'], $request);
         }
 
-        return match ($this->config['identifier']) {
+        $identifier = $this->config['identifier'];
+
+        if (is_array($identifier)) {
+            $parts = [];
+            foreach ($identifier as $type) {
+                $parts[] = $this->getIdentifierByType($type, $request);
+            }
+
+            return implode('_', $parts);
+        }
+
+        return $this->getIdentifierByType($identifier, $request);
+    }
+
+    /**
+     * Get identifier by type
+     *
+     * @param string $type The identifier type
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request
+     * @return string
+     */
+    protected function getIdentifierByType(string $type, ServerRequestInterface $request): string
+    {
+        return match ($type) {
             'ip' => $this->getClientIp($request),
             'user' => $this->getUserIdentifier($request),
             'route' => $this->getRouteIdentifier($request),
-            'api_key' => $this->getApiKeyIdentifier($request),
+            'api_key', 'token' => $this->getApiKeyIdentifier($request),
             default => $this->getClientIp($request),
         };
     }
@@ -151,18 +211,22 @@ class RateLimitMiddleware implements MiddlewareInterface
     {
         $params = $request->getServerParams();
 
-        if (!empty($params['HTTP_CF_CONNECTING_IP'])) {
-            return $params['HTTP_CF_CONNECTING_IP'];
-        }
+        if (is_array($this->config['ipHeader'])) {
+            foreach ($this->config['ipHeader'] as $header) {
+                $headerKey = 'HTTP_' . strtoupper(str_replace('-', '_', $header));
+                if (!empty($params[$headerKey])) {
+                    $ips = explode(',', $params[$headerKey]);
 
-        if (!empty($params['HTTP_X_FORWARDED_FOR'])) {
-            $ips = explode(',', $params['HTTP_X_FORWARDED_FOR']);
+                    return trim($ips[0]);
+                }
+            }
+        } elseif (is_string($this->config['ipHeader'])) {
+            $headerKey = 'HTTP_' . strtoupper(str_replace('-', '_', $this->config['ipHeader']));
+            if (!empty($params[$headerKey])) {
+                $ips = explode(',', $params[$headerKey]);
 
-            return trim($ips[0]);
-        }
-
-        if (!empty($params['HTTP_X_REAL_IP'])) {
-            return $params['HTTP_X_REAL_IP'];
+                return trim($ips[0]);
+            }
         }
 
         return $params['REMOTE_ADDR'] ?? 'unknown';
@@ -176,11 +240,13 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getUserIdentifier(ServerRequestInterface $request): string
     {
+        /** @var object|null $user */
         $user = $request->getAttribute('identity');
         if ($user) {
             if (method_exists($user, 'getIdentifier')) {
                 return 'user_' . $user->getIdentifier();
-            } elseif (isset($user->id)) {
+            }
+            if (isset($user->id)) {
                 return 'user_' . $user->id;
             }
         }
@@ -208,19 +274,47 @@ class RateLimitMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Get API key identifier
+     * Generate cache key for rate limiting
+     *
+     * @param string $identifier The identifier
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request
+     * @return string
+     */
+    protected function generateKey(string $identifier, ServerRequestInterface $request): string
+    {
+        if ($this->config['keyGenerator'] !== null) {
+            return (string)call_user_func($this->config['keyGenerator'], $identifier, $request);
+        }
+
+        return 'rate_limit_' . hash('xxh3', $identifier);
+    }
+
+    /**
+     * Get API key/token identifier
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request The request
      * @return string
      */
     protected function getApiKeyIdentifier(ServerRequestInterface $request): string
     {
-        $apiKey = $request->getHeaderLine('X-API-Key');
-        if (empty($apiKey)) {
-            $apiKey = $request->getQuery('api_key', '');
+        foreach ($this->config['tokenHeaders'] as $header) {
+            $value = $request->getHeaderLine($header);
+            if ($value) {
+                if ($header === 'Authorization') {
+                    $parts = explode(' ', $value, 2);
+                    if (count($parts) === 2) {
+                        $scheme = strtolower($parts[0]);
+                        $token = $parts[1];
+
+                        return sprintf('%s_%s', $scheme, hash('xxh3', $token));
+                    }
+                }
+
+                return 'token_' . hash('xxh3', $value);
+            }
         }
 
-        return !empty($apiKey) ? 'api_' . $apiKey : $this->getClientIp($request);
+        return $this->getClientIp($request);
     }
 
     /**
@@ -257,13 +351,15 @@ class RateLimitMiddleware implements MiddlewareInterface
     /**
      * Get rate limiter instance based on strategy
      *
+     * @param string|null $strategy Optional strategy override
      * @return \Cake\Http\RateLimit\RateLimiterInterface
      */
-    protected function getRateLimiter(): RateLimiterInterface
+    protected function getRateLimiter(?string $strategy = null): RateLimiterInterface
     {
+        $strategy = $strategy ?? $this->config['strategy'];
         $cache = Cache::pool($this->config['cache']);
 
-        return match ($this->config['strategy']) {
+        return match ($strategy) {
             'token_bucket' => new TokenBucketRateLimiter($cache),
             'fixed_window' => new FixedWindowRateLimiter($cache),
             'sliding_window' => new SlidingWindowRateLimiter($cache),
