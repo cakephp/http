@@ -47,7 +47,7 @@ class FixedWindowRateLimiter implements RateLimiterInterface
     {
         $now = time();
         $windowStart = (int)($now / $window) * $window;
-        $key = 'rate_limit_' . md5($identifier . '_' . $windowStart);
+        $key = 'rate_limit_' . hash('xxh3', $identifier . '_' . $windowStart);
 
         $count = (int)$this->cache->get($key, 0);
         $allowed = $count + $cost <= $limit;
