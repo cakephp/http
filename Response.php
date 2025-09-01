@@ -222,9 +222,7 @@ class Response implements ResponseInterface, Stringable
         if (isset($options['status'])) {
             $this->setStatus($options['status']);
         }
-        if (!isset($options['charset'])) {
-            $options['charset'] = Configure::read('App.encoding');
-        }
+        $options['charset'] ??= Configure::read('App.encoding');
         $this->_charset = $options['charset'];
         $type = 'text/html';
         if (isset($options['type'])) {
