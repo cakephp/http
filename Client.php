@@ -119,7 +119,7 @@ class Client implements EventDispatcherInterface, ClientInterface
      *
      * @var array<string, mixed>
      */
-    protected array $_defaultConfig = [
+    protected array $defaultConfig = [
         'auth' => null,
         'adapter' => null,
         'host' => null,
@@ -196,7 +196,7 @@ class Client implements EventDispatcherInterface, ClientInterface
         $this->_eventClass = ClientEvent::class;
         $this->setConfig($config);
 
-        $adapter = $this->_config['adapter'];
+        $adapter = $this->config['adapter'];
         if ($adapter === null) {
             $adapter = Curl::class;
 
@@ -213,8 +213,8 @@ class Client implements EventDispatcherInterface, ClientInterface
 
         $this->_adapter = $adapter;
 
-        if (!empty($this->_config['cookieJar'])) {
-            $this->_cookies = $this->_config['cookieJar'];
+        if (!empty($this->config['cookieJar'])) {
+            $this->_cookies = $this->config['cookieJar'];
             $this->setConfig('cookieJar', null);
         } else {
             $this->_cookies = new CookieCollection();
@@ -455,7 +455,7 @@ class Client implements EventDispatcherInterface, ClientInterface
      */
     protected function mergeOptions(array $options): array
     {
-        return Hash::merge($this->_config, $options);
+        return Hash::merge($this->config, $options);
     }
 
     /**
@@ -467,7 +467,7 @@ class Client implements EventDispatcherInterface, ClientInterface
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
-        return $this->send($request, $this->_config);
+        return $this->send($request, $this->config);
     }
 
     /**

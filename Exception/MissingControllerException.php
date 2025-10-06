@@ -26,10 +26,10 @@ class MissingControllerException extends CakeException implements HttpErrorCodeI
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 404;
+    protected int $defaultCode = 404;
 
     /**
      * @inheritDoc
      */
-    protected string $_messageTemplate = 'Controller class `%s` could not be found.';
+    protected string $messageTemplate = 'Controller class `%s` could not be found.';
 }

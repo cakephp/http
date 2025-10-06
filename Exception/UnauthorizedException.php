@@ -24,7 +24,7 @@ class UnauthorizedException extends HttpException
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 401;
+    protected int $defaultCode = 401;
 
     /**
      * Constructor

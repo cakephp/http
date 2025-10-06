@@ -24,7 +24,7 @@ class MethodNotAllowedException extends HttpException
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 405;
+    protected int $defaultCode = 405;
 
     /**
      * Constructor
