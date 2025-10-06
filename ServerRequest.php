@@ -663,13 +663,7 @@ class ServerRequest implements ServerRequestInterface
      */
     public function isAll(array $types): bool
     {
-        foreach ($types as $type) {
-            if (!$this->is($type)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($types, fn($type) => $this->is($type));
     }
 
     /**
