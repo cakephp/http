@@ -24,7 +24,7 @@ class GoneException extends HttpException
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 410;
+    protected int $defaultCode = 410;
 
     /**
      * Constructor

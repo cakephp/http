@@ -30,7 +30,7 @@ class HttpException extends CakeException implements HttpErrorCodeInterface
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 500;
+    protected int $defaultCode = 500;
 
     /**
      * @var array<string, mixed>

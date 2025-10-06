@@ -22,10 +22,10 @@ class NotImplementedException extends HttpException
     /**
      * @inheritDoc
      */
-    protected string $_messageTemplate = '%s is not implemented.';
+    protected string $messageTemplate = '%s is not implemented.';
 
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 501;
+    protected int $defaultCode = 501;
 }

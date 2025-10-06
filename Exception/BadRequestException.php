@@ -24,7 +24,7 @@ class BadRequestException extends HttpException
     /**
      * @inheritDoc
      */
-    protected int $_defaultCode = 400;
+    protected int $defaultCode = 400;
 
     /**
      * Constructor
