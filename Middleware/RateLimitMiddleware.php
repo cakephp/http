@@ -121,7 +121,7 @@ class RateLimitMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
 
         if ($this->config['headers']) {
-            $response = $this->addRateLimitHeaders($response, $result);
+            return $this->addRateLimitHeaders($response, $result);
         }
 
         return $response;
@@ -370,7 +370,7 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getRateLimiter(?string $strategy = null): RateLimiterInterface
     {
-        $strategy = $strategy ?? $this->config['strategy'];
+        $strategy ??= $this->config['strategy'];
         $cache = Cache::pool($this->config['cache']);
 
         return match ($strategy) {
