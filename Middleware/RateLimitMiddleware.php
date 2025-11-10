@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Http\Middleware;
 
+use Authentication\IdentityInterface;
 use Cake\Cache\Cache;
 use Cake\Http\Exception\TooManyRequestsException;
 use Cake\Http\RateLimit\FixedWindowRateLimiter;
@@ -304,10 +305,15 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getUserIdentifier(ServerRequestInterface $request): string
     {
-        /** @var object|null $user */
+        /**
+         * @var \Authentication\IdentityInterface|\Cake\ORM\Entity|null $user
+         * @phpstan-ignore-next-line
+         */
         $user = $request->getAttribute('identity');
         if ($user) {
-            if (method_exists($user, 'getIdentifier')) {
+            /** @phpstan-ignore-next-line */
+            if ($user instanceof IdentityInterface) {
+                /** @phpstan-ignore-next-line */
                 return 'user_' . $user->getIdentifier();
             }
             if (isset($user->id)) {
@@ -457,27 +463,5 @@ class RateLimitMiddleware implements MiddlewareInterface
             ->withHeader('X-RateLimit-Remaining', (string)$result['remaining'])
             ->withHeader('X-RateLimit-Reset', (string)$result['reset'])
             ->withHeader('X-RateLimit-Reset-Date', date('c', $result['reset']));
-    }
-
-    /**
-     * Reset rate limit for a specific identifier
-     *
-     * Clears all rate limiting data for the specified identifier. Useful for
-     * testing or administrative purposes where you need to manually reset limits.
-     *
-     * Example usage:
-     * ```
-     * $middleware->resetLimit('192.168.1.1');
-     * ```
-     *
-     * @param string $identifier The raw identifier (e.g., IP address, user ID)
-     * @param array<string, mixed> $limiterConfig Optional limiter configuration
-     * @return void
-     */
-    public function resetLimit(string $identifier, array $limiterConfig = []): void
-    {
-        $key = 'rate_limit_' . hash('xxh3', $identifier);
-        $rateLimiter = $this->getRateLimiter($limiterConfig);
-        $rateLimiter->reset($key);
     }
 }
