@@ -305,15 +305,9 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     protected function getUserIdentifier(ServerRequestInterface $request): string
     {
-        /**
-         * @var \Authentication\IdentityInterface|\Cake\ORM\Entity|null $user
-         * @phpstan-ignore-next-line
-         */
         $user = $request->getAttribute('identity');
         if ($user) {
-            /** @phpstan-ignore-next-line */
-            if ($user instanceof IdentityInterface) {
-                /** @phpstan-ignore-next-line */
+            if (interface_exists(IdentityInterface::class) && $user instanceof IdentityInterface) {
                 return 'user_' . $user->getIdentifier();
             }
             if (isset($user->id)) {
