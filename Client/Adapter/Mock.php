@@ -81,12 +81,12 @@ class Mock implements AdapterInterface
         $requestUri = (string)$request->getUri();
 
         foreach ($this->responses as $index => $mock) {
-            /** @var \Psr\Http\Message\RequestInterface $request */
-            $request = $mock['request'];
-            if ($method !== $request->getMethod()) {
+            /** @var \Psr\Http\Message\RequestInterface $mockRequest */
+            $mockRequest = $mock['request'];
+            if ($method !== $mockRequest->getMethod()) {
                 continue;
             }
-            if (!$this->urlMatches($requestUri, $mock['request'])) {
+            if (!$this->urlMatches($requestUri, $mockRequest)) {
                 continue;
             }
             if (isset($mock['options']['match'])) {
