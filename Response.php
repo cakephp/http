@@ -599,7 +599,7 @@ class Response implements ResponseInterface, Stringable
     }
 
     /**
-     * Create a new instace with the public/private Cache-Control directive set.
+     * Create a new instance with the public/private Cache-Control directive set.
      *
      * @param bool $public If set to true, the Cache-Control header will be set as public
      *   if set to false, the response will be set to private.
