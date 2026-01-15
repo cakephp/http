@@ -559,8 +559,8 @@ class Client implements EventDispatcherInterface, ClientInterface
      * a wildcard to match any suffix:
      *
      * ```
-     * // Match any URL starting with /api/
-     * Client::addMockResponse('GET', '/api/*', $response);
+     * // Match any URL starting with https://example.com/api/
+     * Client::addMockResponse('GET', 'https://example.com/api/*', $response);
      * ```
      *
      * For more complex matching, use the `match` option with a closure
