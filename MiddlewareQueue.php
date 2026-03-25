@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Http;
 
+use Cake\Container\Container as CakeContainer;
 use Cake\Core\App;
 use Cake\Core\ContainerInterface;
 use Cake\Http\Middleware\ClosureDecoratorMiddleware;
@@ -50,18 +51,20 @@ class MiddlewareQueue implements Countable, SeekableIterator
     protected array $queue = [];
 
     /**
-     * @var \Cake\Core\ContainerInterface|null
+     * @var \Cake\Core\ContainerInterface|\Cake\Container\Container|null
      */
-    protected ?ContainerInterface $container;
+    protected ContainerInterface|CakeContainer|null $container;
 
     /**
      * Constructor
      *
      * @param array $middleware The list of middleware to append.
-     * @param \Cake\Core\ContainerInterface|null $container Container instance.
+     * @param \Cake\Core\ContainerInterface|\Cake\Container\Container|null $container Container instance.
      */
-    public function __construct(array $middleware = [], ?ContainerInterface $container = null)
-    {
+    public function __construct(
+        array $middleware = [],
+        ContainerInterface|CakeContainer|null $container = null,
+    ) {
         $this->container = $container;
         $this->queue = $middleware;
     }

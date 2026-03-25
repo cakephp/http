@@ -18,10 +18,11 @@ declare(strict_types=1);
 namespace Cake\Http;
 
 use Cake\Console\CommandCollection;
+use Cake\Container\Container as CakeContainer;
 use Cake\Controller\ControllerFactory;
 use Cake\Core\ConsoleApplicationInterface;
-use Cake\Core\Container;
 use Cake\Core\ContainerApplicationInterface;
+use Cake\Core\ContainerFactory;
 use Cake\Core\ContainerInterface;
 use Cake\Core\EventAwareApplicationInterface;
 use Cake\Core\Exception\MissingPluginException;
@@ -92,9 +93,9 @@ abstract class BaseApplication implements
     /**
      * Container
      *
-     * @var \Cake\Core\ContainerInterface|null
+     * @var \Cake\Core\ContainerInterface|\Cake\Container\Container|null
      */
-    protected ?ContainerInterface $container = null;
+    protected ContainerInterface|CakeContainer|null $container = null;
 
     /**
      * Constructor
@@ -278,9 +279,9 @@ abstract class BaseApplication implements
      * The first time the container is fetched it will be constructed
      * and stored for future calls.
      *
-     * @return \Cake\Core\ContainerInterface
+     * @return \Cake\Core\ContainerInterface|\Cake\Container\Container
      */
-    public function getContainer(): ContainerInterface
+    public function getContainer(): ContainerInterface|CakeContainer
     {
         return $this->container ??= $this->buildContainer();
     }
@@ -291,19 +292,24 @@ abstract class BaseApplication implements
      * Override this method if you need to use a custom container or
      * want to change how the container is built.
      *
-     * @return \Cake\Core\ContainerInterface
+     * The container type is determined by `Configure::read('App.container')`:
+     * - 'cake': Uses the built-in CakePHP container
+     * - Any other value: Uses the League container (default)
+     *
+     * @return \Cake\Core\ContainerInterface|\Cake\Container\Container
      */
-    protected function buildContainer(): ContainerInterface
+    protected function buildContainer(): ContainerInterface|CakeContainer
     {
-        $container = new Container();
+        $container = ContainerFactory::create();
         $this->services($container);
         foreach ($this->plugins->with('services') as $plugin) {
             $plugin->services($container);
         }
 
         $event = $this->dispatchEvent('Application.buildContainer', ['container' => $container]);
-        if ($event->getResult() instanceof ContainerInterface) {
-            return $event->getResult();
+        $result = $event->getResult();
+        if ($result instanceof ContainerInterface || $result instanceof CakeContainer) {
+            return $result;
         }
 
         return $container;
@@ -312,10 +318,10 @@ abstract class BaseApplication implements
     /**
      * Register application container services.
      *
-     * @param \Cake\Core\ContainerInterface $container The Container to update.
+     * @param \Cake\Core\ContainerInterface|\Cake\Container\Container $container The Container to update.
      * @return void
      */
-    public function services(ContainerInterface $container): void
+    public function services(ContainerInterface|CakeContainer $container): void
     {
     }
 
